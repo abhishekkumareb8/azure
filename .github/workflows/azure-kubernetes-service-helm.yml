@@ -1,4 +1,4 @@
-name: Build and deploy an app to AKS with Helm
+name: Build and deploy an app to AKS
 "on":
     push:
         branches:
@@ -6,10 +6,9 @@ name: Build and deploy an app to AKS with Helm
     workflow_dispatch: null
 env:
     AZURE_CONTAINER_REGISTRY: demoaksacr2
-    CHART_OVERRIDE_PATH: ./charts/production.yaml
-    CHART_PATH: ./charts
     CLUSTER_NAME: demoaks
-    CONTAINER_NAME: draft
+    CONTAINER_NAME: testaks
+    DEPLOYMENT_MANIFEST_PATH: ./manifests
     IMAGE_PULL_SECRET_NAME: demoaksacr2secret
     RESOURCE_GROUP: aks-backup-rg
 jobs:
@@ -85,21 +84,11 @@ jobs:
               with:
                 cluster-name: ${{ env.CLUSTER_NAME }}
                 resource-group: ${{ env.RESOURCE_GROUP }}
-            - id: bake
-              name: Bake deployment
-              uses: azure/k8s-bake@v2.1
-              with:
-                helm-version: latest
-                helmChart: ${{ env.CHART_PATH }}
-                overrideFiles: ${{ env.CHART_OVERRIDE_PATH }}
-                overrides: |
-                    replicas:2
-                renderEngine: helm
-            - name: Deploy application
+            - name: Deploys application
               uses: Azure/k8s-deploy@v3.1
               with:
                 action: deploy
                 imagepullsecrets: ${{ env.IMAGE_PULL_SECRET_NAME }}
                 images: |
                     ${{ env.AZURE_CONTAINER_REGISTRY }}.azurecr.io/${{ env.CONTAINER_NAME }}:${{ github.sha }}
-                manifests: ${{ steps.bake.outputs.manifestsBundle }}
+                manifests: ${{ env.DEPLOYMENT_MANIFEST_PATH }}
