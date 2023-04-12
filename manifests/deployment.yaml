@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: draft
+  labels:
+    app: draft
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: draft
+  template:
+    metadata:
+      labels:
+        app: draft
+    spec:
+      containers:
+        - name: draft
+          image: draft
+          ports:
+            - containerPort: 80
